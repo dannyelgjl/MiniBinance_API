@@ -1,11 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ApiDocumentationController;
 use App\Http\Controllers\Api\MarketController;
+use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TradeController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/docs', ApiDocumentationController::class);
+Route::get('/openapi.json', OpenApiController::class);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

@@ -1,0 +1,674 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mini Binance API",
+    "description": "API para autenticação, carteira, preço fake de BTC, compra, venda e histórico de transações.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Servidor atual"
+    },
+    {
+      "url": "http://localhost:8000/api",
+      "description": "Docker/local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autenticação com Laravel Sanctum"
+    },
+    {
+      "name": "Market",
+      "description": "Preço fake do mercado"
+    },
+    {
+      "name": "Wallet",
+      "description": "Carteira do usuário"
+    },
+    {
+      "name": "Trade",
+      "description": "Compra e venda de BTC"
+    },
+    {
+      "name": "Transactions",
+      "description": "Histórico de operações"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrar usuário",
+        "description": "Cria um usuário, cria a carteira inicial com R$ 10.000,00 e retorna um token Bearer.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              },
+              "example": {
+                "name": "Daniel",
+                "email": "daniel@example.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "description": "Autentica com email/senha e retorna um token Bearer.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "email": "daniel@example.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/market/btc": {
+      "get": {
+        "tags": ["Market"],
+        "summary": "Preço atual do BTC",
+        "description": "Retorna um preço fake dinâmico de BTC em BRL, mantido em cache por alguns segundos.",
+        "responses": {
+          "200": {
+            "description": "Preço atual",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketPrice"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados do usuário autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout",
+        "description": "Revoga o token atual.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout realizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Logout realizado com sucesso."
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/wallet": {
+      "get": {
+        "tags": ["Wallet"],
+        "summary": "Consultar carteira",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saldos do usuário",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/trade/buy": {
+      "post": {
+        "tags": ["Trade"],
+        "summary": "Comprar BTC",
+        "description": "Compra BTC usando saldo BRL. Aceita os campos amount_brl, brl_amount ou amount.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyTradeRequest"
+              },
+              "example": {
+                "amount_brl": 1000
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Compra realizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/trade/sell": {
+      "post": {
+        "tags": ["Trade"],
+        "summary": "Vender BTC",
+        "description": "Vende BTC e credita BRL. Aceita os campos amount_btc, btc_amount ou amount.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellTradeRequest"
+              },
+              "example": {
+                "amount_btc": 0.001
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Venda realizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "tags": ["Transactions"],
+        "summary": "Listar transações",
+        "description": "Lista o histórico paginado de transações do usuário.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Quantidade de itens por página.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico paginado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionCollection"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Sanctum token"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Token ausente ou inválido",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "message": "Unauthenticated."
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Erro de validação",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "example": {
+              "message": "The given data was invalid.",
+              "errors": {
+                "email": ["Credenciais inválidas."]
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Daniel"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "daniel@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "example": "password123"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "daniel@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        }
+      },
+      "BuyTradeRequest": {
+        "type": "object",
+        "required": ["amount_brl"],
+        "properties": {
+          "amount_brl": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0.01,
+            "example": 1000
+          }
+        }
+      },
+      "SellTradeRequest": {
+        "type": "object",
+        "required": ["amount_btc"],
+        "properties": {
+          "amount_btc": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0.00000001,
+            "example": 0.001
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "example": "1|token..."
+          },
+          "token_type": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Wallet"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Daniel"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "daniel@example.com"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-19T22:00:00.000000Z"
+          }
+        }
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "brl_balance": {
+            "type": "number",
+            "format": "float",
+            "example": 10000
+          },
+          "brl_balance_formatted": {
+            "type": "string",
+            "example": "10000.00"
+          },
+          "brl_balance_cents": {
+            "type": "integer",
+            "example": 1000000
+          },
+          "btc_balance": {
+            "type": "number",
+            "format": "float",
+            "example": 0.001
+          },
+          "btc_balance_formatted": {
+            "type": "string",
+            "example": "0.00100000"
+          },
+          "btc_balance_satoshis": {
+            "type": "integer",
+            "example": 100000
+          }
+        }
+      },
+      "MarketPrice": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "BTCBRL"
+          },
+          "asset": {
+            "type": "string",
+            "example": "BTC"
+          },
+          "currency": {
+            "type": "string",
+            "example": "BRL"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "example": 250000
+          },
+          "price_formatted": {
+            "type": "string",
+            "example": "250000.00"
+          },
+          "price_cents": {
+            "type": "integer",
+            "example": 25000000
+          },
+          "cached_for_seconds": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": ["buy", "sell"],
+            "example": "buy"
+          },
+          "brl_amount": {
+            "type": "number",
+            "format": "float",
+            "example": 1000
+          },
+          "brl_amount_formatted": {
+            "type": "string",
+            "example": "1000.00"
+          },
+          "brl_amount_cents": {
+            "type": "integer",
+            "example": 100000
+          },
+          "btc_amount": {
+            "type": "number",
+            "format": "float",
+            "example": 0.004
+          },
+          "btc_amount_formatted": {
+            "type": "string",
+            "example": "0.00400000"
+          },
+          "btc_amount_satoshis": {
+            "type": "integer",
+            "example": 400000
+          },
+          "btc_price": {
+            "type": "number",
+            "format": "float",
+            "example": 250000
+          },
+          "btc_price_formatted": {
+            "type": "string",
+            "example": "250000.00"
+          },
+          "btc_price_cents": {
+            "type": "integer",
+            "example": 25000000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-19T22:00:00.000000Z"
+          }
+        }
+      },
+      "TradeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Compra realizada com sucesso."
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Wallet"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
+      "TransactionCollection": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
