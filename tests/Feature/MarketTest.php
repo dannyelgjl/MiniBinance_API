@@ -20,12 +20,17 @@ class MarketTest extends TestCase
                 'asset',
                 'currency',
                 'price',
+                'price_change',
                 'price_formatted',
                 'price_cents',
+                'price_history',
+                'price_history_cents',
                 'cached_for_seconds',
             ]);
 
         $this->assertGreaterThanOrEqual(20_000_000, $response->json('price_cents'));
         $this->assertLessThanOrEqual(30_000_000, $response->json('price_cents'));
+        $this->assertCount(12, $response->json('price_history'));
+        $this->assertCount(12, $response->json('price_history_cents'));
     }
 }
