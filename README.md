@@ -298,8 +298,23 @@ Resposta:
   "asset": "BTC",
   "currency": "BRL",
   "price": 250000,
+  "price_change": 1.25,
   "price_formatted": "250000.00",
   "price_cents": 25000000,
+  "price_history": [
+    245000,
+    246100,
+    247250,
+    248900,
+    250000
+  ],
+  "price_history_cents": [
+    24500000,
+    24610000,
+    24725000,
+    24890000,
+    25000000
+  ],
   "cached_for_seconds": 10
 }
 ```
@@ -510,8 +525,9 @@ app/Services/BtcMarketService.php
 Comportamento:
 
 - Primeira chamada a `/api/market/btc` gera um preco aleatorio.
-- Chamadas seguintes dentro do TTL retornam o mesmo preco.
-- Depois do TTL, um novo preco e gerado.
+- A resposta inclui `price_change`, `price_history` e `price_history_cents` para alimentar cards/graficos do app.
+- Chamadas seguintes dentro do TTL retornam o mesmo pacote de mercado em cache.
+- Depois do TTL, um novo pacote de mercado e gerado.
 
 ## Controle De Concorrencia
 

@@ -532,6 +532,12 @@
             "format": "float",
             "example": 250000
           },
+          "price_change": {
+            "type": "number",
+            "format": "float",
+            "description": "Variacao percentual calculada contra o penultimo ponto do historico fake.",
+            "example": 1.25
+          },
           "price_formatted": {
             "type": "string",
             "example": "250000.00"
@@ -539,6 +545,23 @@
           "price_cents": {
             "type": "integer",
             "example": 25000000
+          },
+          "price_history": {
+            "type": "array",
+            "description": "Serie fake de precos em BRL para graficos simples.",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "example": [245000, 246100, 247250, 248900, 250000]
+          },
+          "price_history_cents": {
+            "type": "array",
+            "description": "Mesma serie de historico representada em centavos.",
+            "items": {
+              "type": "integer"
+            },
+            "example": [24500000, 24610000, 24725000, 24890000, 25000000]
           },
           "cached_for_seconds": {
             "type": "integer",
